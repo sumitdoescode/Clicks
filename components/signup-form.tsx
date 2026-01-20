@@ -38,7 +38,6 @@ export function SignupForm({ className, ...props }: React.ComponentProps<"div">)
         // client side validation
         const result = SignUpSchema.safeParse(formData);
         if (!result.success) {
-            console.log(flattenError(result.error).fieldErrors);
             setErrors(flattenError(result.error).fieldErrors);
             return;
         }

@@ -12,16 +12,19 @@ import { authClient } from "@/lib/auth-client";
 import { toast } from "sonner";
 import { Spinner } from "@/components/ui/spinner";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 type ErrorType = {
     email?: string[];
     backendError?: string;
 };
 
-export function ForgetPassword({ className, ...props }: React.ComponentProps<"div">) {
+export function ResetPasswordEmail({ className, ...props }: React.ComponentProps<"div">) {
     const [formData, setFormData] = useState<ForgetPasswordType>({ email: "" });
     const [errors, setErrors] = useState<ErrorType>({});
     const [loading, setLoading] = useState<boolean>(false);
+
+    const router = useRouter();
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -29,7 +32,6 @@ export function ForgetPassword({ className, ...props }: React.ComponentProps<"di
         // client side validation
         const result = ForgetPasswordSchema.safeParse(formData);
         if (!result.success) {
-            console.log(flattenError(result.error).fieldErrors);
             setErrors(flattenError(result.error).fieldErrors);
             return;
         }
@@ -44,8 +46,8 @@ export function ForgetPassword({ className, ...props }: React.ComponentProps<"di
             },
             {
                 onError: (ctx) => {
-                    console.log("coming here here here ");
-                    console.log("error error");
+                    // console.log("coming here here here ");
+                    // console.log("error error");
                 },
             },
         );
@@ -72,8 +74,8 @@ export function ForgetPassword({ className, ...props }: React.ComponentProps<"di
                             </div>
                             <span className="sr-only">Clicks.</span>
                         </Link>
-                        <h1 className="text-xl font-bold">Forget Password</h1>
-                        {/* <FieldDescription>Enter your email to forget password</FieldDescription> */}
+                        <h1 className="text-xl font-bold">Reset Password</h1>
+                        <FieldDescription className="text-center">Enter your email address and we'll send you instructions to reset your password.</FieldDescription>
                     </div>
                     <Field>
                         <FieldLabel htmlFor="email">Email</FieldLabel>
@@ -93,6 +95,16 @@ export function ForgetPassword({ className, ...props }: React.ComponentProps<"di
                     <Field>
                         <Button type="submit" disabled={loading}>
                             {loading ? <Spinner /> : "Send Email"}
+                        </Button>
+                        <Button
+                            variant="outline"
+                            type="button"
+                            disabled={loading}
+                            onClick={() => {
+                                router.push("/auth/login");
+                            }}
+                        >
+                            Back to Login
                         </Button>
                     </Field>
                 </FieldGroup>

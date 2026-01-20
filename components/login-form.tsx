@@ -31,7 +31,6 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
         // client side validation
         const result = LoginSchema.safeParse(formData);
         if (!result.success) {
-            console.log(flattenError(result.error).fieldErrors);
             setErrors(flattenError(result.error).fieldErrors);
             return;
         }
@@ -65,7 +64,6 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
 
         // there are no errors
         setErrors({});
-        console.log("no errors", data);
     };
     return (
         <div className={cn("flex flex-col gap-6", className)} {...props}>
@@ -95,7 +93,7 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
                             <Field>
                                 <div className="flex items-center">
                                     <FieldLabel htmlFor="password">Password</FieldLabel>
-                                    <Link href="/auth/forget-password" className="ml-auto inline-block text-sm underline-offset-4 hover:underline">
+                                    <Link href="/auth/reset-password" className="ml-auto inline-block text-sm underline-offset-4 hover:underline">
                                         Forgot your password?
                                     </Link>
                                 </div>

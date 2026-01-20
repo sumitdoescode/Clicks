@@ -15,6 +15,7 @@ const userSchema = new Schema(
             type: String,
             required: true,
             unique: true,
+            index: true,
         },
         bio: {
             type: String,

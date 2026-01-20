@@ -30,7 +30,6 @@ export function ResetPassword({ className, token }: { token: string; className?:
         // client side validation
         const result = ResetPasswordSchema.safeParse(formData);
         if (!result.success) {
-            console.log(flattenError(result.error).fieldErrors);
             setErrors(flattenError(result.error).fieldErrors);
             return;
         }
