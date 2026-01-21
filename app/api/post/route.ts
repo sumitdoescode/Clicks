@@ -13,7 +13,7 @@ import { flattenError } from "zod";
 // GET => api/posts
 export async function GET(request: NextRequest) {
     try {
-        connectDB();
+        await connectDB();
 
         const session = await auth.api.getSession({
             headers: await headers(), // you need to pass the headers object.
@@ -112,7 +112,7 @@ export async function GET(request: NextRequest) {
 // POST => api/post
 export async function POST(request: NextRequest) {
     try {
-        connectDB();
+        await connectDB();
 
         const session = await auth.api.getSession({
             headers: await headers(), // you need to pass the headers object.

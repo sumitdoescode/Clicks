@@ -14,7 +14,7 @@ import Conversation from "@/models/Conversation.model";
 export async function POST(request: NextRequest, { params }: { params: Promise<{ username: string }> }) {
     let mongoSession: any;
     try {
-        connectDB();
+        await connectDB();
         const session = await auth.api.getSession({
             headers: await headers(),
         });
@@ -60,13 +60,13 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
             );
 
             if (!conversation) {
-                conversation = await Conversation.create(
+                [conversation] = await Conversation.create([
                     {
                         participant1: me._id,
                         participant2: otherUser._id,
                     },
                     { session: mongoSession },
-                );
+                ]);
             }
 
             const message = await Message.create({ sender: me._id, receiver: otherUser._id, text: result.data.text, conversationId: conversation._id }, { session: mongoSession });
@@ -96,7 +96,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 // GET => api/message/user/[username]
 export async function GET(request: NextRequest, { params }: { params: Promise<{ username: string }> }) {
     try {
-        connectDB();
+        await connectDB();
         const session = await auth.api.getSession({
             headers: await headers(),
         });

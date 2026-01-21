@@ -14,7 +14,7 @@ import { isValidObjectId } from "mongoose";
 // DELETE => api/post/[id]
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
-        connectDB();
+        await connectDB();
 
         const session = await auth.api.getSession({
             headers: await headers(), // you need to pass the headers object.
@@ -63,7 +63,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
 // user can update their post image and caption
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
-        connectDB();
+        await connectDB();
 
         const session = await auth.api.getSession({
             headers: await headers(), // you need to pass the headers object.

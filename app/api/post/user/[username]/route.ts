@@ -11,7 +11,7 @@ import { isValidObjectId } from "mongoose";
 // GET => api/post/user/[username]
 export async function GET(request: NextRequest, { params }: { params: Promise<{ username: string }> }) {
     try {
-        connectDB();
+        await connectDB();
 
         const session = await auth.api.getSession({
             headers: await headers(), // you need to pass the headers object.

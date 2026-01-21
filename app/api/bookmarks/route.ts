@@ -10,7 +10,7 @@ import { connectDB } from "@/lib/db";
 // GET => api/bookmarks
 export async function GET(request: NextRequest) {
     try {
-        connectDB();
+        await connectDB();
         const session = await auth.api.getSession({
             headers: await headers(),
         });

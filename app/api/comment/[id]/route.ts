@@ -11,7 +11,7 @@ import { isValidObjectId } from "mongoose";
 // DELETE => api/comment/[id]
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
-        connectDB();
+        await connectDB();
 
         const session = await auth.api.getSession({
             headers: await headers(),

@@ -11,7 +11,7 @@ import { connectDB } from "@/lib/db";
 
 export async function GET(request: NextRequest) {
     try {
-        connectDB();
+        await connectDB();
         const session = await auth.api.getSession({
             headers: await headers(),
         });

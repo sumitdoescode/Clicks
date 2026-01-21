@@ -14,7 +14,7 @@ import { send } from "process";
 // GET => api/conversation
 export async function GET(request: NextRequest) {
     try {
-        connectDB();
+        await connectDB();
         const session = await auth.api.getSession({
             headers: await headers(),
         });

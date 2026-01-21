@@ -12,7 +12,7 @@ import Post from "@/models/Post.model";
 // POST => api/bookmarks/post/[id]
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
-        connectDB();
+        await connectDB();
         const session = await auth.api.getSession({
             headers: await headers(),
         });

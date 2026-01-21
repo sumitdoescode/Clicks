@@ -14,7 +14,7 @@ import Post from "@/models/Post.model";
 // GET => api/comment/post/[id]
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
-        connectDB();
+        await connectDB();
 
         const session = await auth.api.getSession({
             headers: await headers(),

@@ -15,7 +15,7 @@ import { isValidObjectId } from "mongoose";
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     let mongoSession: any;
     try {
-        connectDB();
+        await connectDB();
         const session = await auth.api.getSession({
             headers: await headers(),
         });

@@ -16,8 +16,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         if (!session?.user) {
             return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
         }
-
-        connectDB();
+        await connectDB();
 
         const { username } = await params;
 

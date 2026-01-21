@@ -26,8 +26,8 @@ const followSchema = new Schema(
 // follower : charlie
 // following : bob
 
-// prevent duplicate follows
-followSchema.index({ follower: 1, following: 1 }, { unique: true }); // ensuing pair must be unique
+// prevent duplicate follows and compound index
+followSchema.index({ follower: 1, following: 1 }, { unique: true }); // ensure pair must be unique
 
 followSchema.index({ follower: 1 });
 followSchema.index({ following: 1 });

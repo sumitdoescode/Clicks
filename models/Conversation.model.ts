@@ -1,4 +1,4 @@
-import mongoose, { Schema, model, models } from "mongoose";
+import { Schema, model, models } from "mongoose";
 
 const conversationSchema = new Schema(
     {
@@ -19,7 +19,8 @@ const conversationSchema = new Schema(
 );
 
 // compound index
-conversationSchema.index({ participant1: 1, participant2: 1 });
+conversationSchema.index({ participant1: 1, participant2: 1 }, { unique: true }); // ensure pair must be unique
+// conversationSchema.index({ participant1: 1, participant2: -1 });
 
 const Conversation = models.Conversation || model("Conversation", conversationSchema);
 

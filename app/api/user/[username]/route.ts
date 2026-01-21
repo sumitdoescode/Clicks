@@ -17,7 +17,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
             return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
         }
 
-        connectDB();
+        await connectDB();
 
         const { username } = await params;
         if (!username) {
@@ -86,7 +86,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 // POST => api/user/[username]
 export async function POST(request: NextRequest, { params }: { params: Promise<{ username: string }> }) {
     try {
-        connectDB();
+        await connectDB();
 
         const session = await auth.api.getSession({
             headers: await headers(), // you need to pass the headers object.

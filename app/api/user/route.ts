@@ -12,7 +12,7 @@ import { put, del } from "@vercel/blob";
 // GET => api/user
 export async function GET(request: NextRequest) {
     try {
-        connectDB();
+        await connectDB();
         const session = await auth.api.getSession({
             headers: await headers(), // you need to pass the headers object.
         });
@@ -92,7 +92,7 @@ export async function GET(request: NextRequest) {
 // PUT => api/user
 export async function PUT(request: NextRequest) {
     try {
-        connectDB();
+        await connectDB();
 
         const session = await auth.api.getSession({
             headers: await headers(), // you need to pass the headers object.
