@@ -35,49 +35,16 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
             return NextResponse.json({ success: false, message: `User not found with username : ${username}` }, { status: 404 });
         }
 
-        const following = await Follow.aggregate([
-            {
-                $match: {
-                    follower: otherUser._id,
-                },
-            },
-            {
-                $lookup: {
-                    from: "users",
-                    localField: "following",
-                    foreignField: "_id",
-                    as: "following",
-                    pipeline: [
-                        {
-                            $project: {
-                                _id: 1,
-                                name: 1,
-                                username: 1,
-                                image: 1,
-                            },
-                        },
-                    ],
-                },
-            },
-            {
-                $unwind: {
-                    path: "$following",
-                    preserveNullAndEmptyArrays: true,
-                },
-            },
-            { $replaceRoot: { newRoot: "$following" } },
-            {
-                $project: {
-                    _id: 1,
-                    name: 1,
-                    username: 1,
-                    image: 1,
-                },
-            },
-        ]);
+        let following = await Follow.find({ follower: otherUser._id })
+            .populate({
+                path: "following",
+                select: "_id name username image",
+            })
+            .select("following");
 
+        following = following.map((f) => f.following);
         return NextResponse.json({ success: true, data: { following } }, { status: 200 });
     } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return NextResponse.json({ success: false, error: error.message || "Internal Server Error" }, { status: 500 });
     }
 }

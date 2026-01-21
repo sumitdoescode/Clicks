@@ -9,7 +9,7 @@ import { put, del } from "@vercel/blob";
 import { PostSchema } from "@/schemas/post.schema";
 import { flattenError } from "zod";
 
-// get all posts
+// get all posts => feed of posts
 // GET => api/posts
 export async function GET(request: NextRequest) {
     try {

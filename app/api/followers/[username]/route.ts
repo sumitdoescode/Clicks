@@ -36,44 +36,13 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
             return NextResponse.json({ success: false, message: "User not found" }, { status: 404 });
         }
 
-        const followers = await Follow.aggregate([
-            {
-                $match: {
-                    following: otherUser._id,
-                },
-            },
-            {
-                $lookup: {
-                    from: "users",
-                    localField: "follower",
-                    foreignField: "_id",
-                    as: "follower",
-                    pipeline: [
-                        {
-                            $project: {
-                                _id: 1,
-                                name: 1,
-                                username: 1,
-                                image: 1,
-                            },
-                        },
-                    ],
-                },
-            },
-            {
-                $unwind: "$follower",
-            },
-            { $replaceRoot: { newRoot: "$follower" } },
-            {
-                $project: {
-                    _id: 1,
-                    name: 1,
-                    username: 1,
-                    image: 1,
-                },
-            },
-        ]);
-
+        let followers = await Follow.find({ following: otherUser._id })
+            .populate({
+                path: "follower",
+                select: "_id name username image",
+            })
+            .select("follower");
+        followers = followers.map((f) => f.follower);
         return NextResponse.json({ success: true, data: { followers } }, { status: 200 });
     } catch (error: any) {
         return NextResponse.json({ success: false, error: error.message || "Internal Server Error" }, { status: 500 });

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { NextRequest } from "next/server";
 import User from "@/models/User.model";
 import Follow from "@/models/Follow.model";
+import Post from "@/models/Post.model";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { connectDB } from "@/lib/db";
@@ -20,63 +21,16 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         await connectDB();
 
         const { username } = await params;
-        if (!username) {
+        if (!username || typeof username !== "string" || username.length < 3) {
             return NextResponse.json({ success: false, message: "Username is required" }, { status: 400 });
         }
+        const user = await User.findOne({ username }).select("_id name username image bio");
+        if (!user) {
+            return NextResponse.json({ success: false, message: `User not found with username : ${username}` }, { status: 404 });
+        }
+        const [postsCount, followersCount, followingCount] = await Promise.all([Post.countDocuments({ user: user._id }), Follow.countDocuments({ following: user._id }), Follow.countDocuments({ follower: user._id })]);
 
-        const user = await User.aggregate([
-            {
-                $match: {
-                    username: username,
-                },
-            },
-            {
-                $lookup: {
-                    from: "posts",
-                    localField: "_id",
-                    foreignField: "user",
-                    as: "posts",
-                },
-            },
-            {
-                $lookup: {
-                    from: "follows",
-                    localField: "_id",
-                    foreignField: "following",
-                    as: "followers",
-                },
-            },
-            {
-                $lookup: {
-                    from: "follows",
-                    localField: "_id",
-                    foreignField: "follower",
-                    as: "following",
-                },
-            },
-            {
-                $addFields: {
-                    postsCount: { $size: "$posts" },
-                    followersCount: { $size: "$followers" },
-                    followingCount: { $size: "$following" },
-                },
-            },
-            {
-                $project: {
-                    name: 1,
-                    username: 1,
-                    image: 1,
-                    bio: 1,
-                    postsCount: 1,
-                    followersCount: 1,
-                    followingCount: 1,
-                },
-            },
-        ]);
-        // user will be an array
-        if (!user.length) return NextResponse.json({ success: false, message: `User not found with username : ${username}` }, { status: 404 });
-
-        return NextResponse.json({ success: true, data: user }, { status: 200 });
+        return NextResponse.json({ success: true, data: { ...user.toObject(), postsCount, followersCount, followingCount } }, { status: 200 });
     } catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }

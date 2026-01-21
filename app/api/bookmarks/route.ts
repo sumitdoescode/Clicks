@@ -135,9 +135,8 @@ export async function GET(request: NextRequest) {
             },
             {
                 $project: {
-                    _id: 1,
+                    _id: 0,
                     post: 1,
-                    createdAt: 1,
                 },
             },
         ]);

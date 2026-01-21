@@ -7,6 +7,9 @@ import { connectDB } from "@/lib/db";
 import { UserSchema } from "@/schemas/user.schema";
 import { flattenError } from "zod";
 import { put, del } from "@vercel/blob";
+import Post from "@/models/Post.model";
+import Follow from "@/models/Follow.model";
+import Bookmark from "@/models/Bookmark.model";
 
 // get own user profile => postsCount, followersCount, followingCount, bookmarksCount
 // GET => api/user
@@ -20,69 +23,18 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
         }
 
-        const user = await User.aggregate([
-            {
-                $match: {
-                    email: session.user.email,
-                },
-            },
-            {
-                $lookup: {
-                    from: "posts",
-                    localField: "_id",
-                    foreignField: "user",
-                    as: "posts",
-                },
-            },
-            {
-                $lookup: {
-                    from: "follows",
-                    localField: "_id",
-                    foreignField: "following",
-                    as: "followers",
-                },
-            },
-            {
-                $lookup: {
-                    from: "follows",
-                    localField: "_id",
-                    foreignField: "follower",
-                    as: "following",
-                },
-            },
-            {
-                $lookup: {
-                    from: "bookmarks",
-                    localField: "_id",
-                    foreignField: "user",
-                    as: "bookmarks",
-                },
-            },
-            {
-                $addFields: {
-                    postsCount: { $size: "$posts" },
-                    followersCount: { $size: "$followers" },
-                    followingCount: { $size: "$following" },
-                    bookmarksCount: { $size: "$bookmarks" },
-                },
-            },
-            {
-                $project: {
-                    name: 1,
-                    username: 1,
-                    image: 1,
-                    bio: 1,
-                    postsCount: 1,
-                    followersCount: 1,
-                    followingCount: 1,
-                    bookmarksCount: 1,
-                },
-            },
-        ]);
-        // user will be an array
-        if (!user.length) return NextResponse.json({ success: false, message: "User not found" }, { status: 404 });
+        const me = await User.findOne({ email: session.user.email }).select("_id name username image bio");
+        if (!me) {
+            return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
+        }
 
-        return NextResponse.json({ success: true, data: { user: user[0] } }, { status: 200 });
+        const [postsCount, followersCount, followingCount, bookmarksCount] = await Promise.all([
+            Post.countDocuments({ user: me._id }),
+            Follow.countDocuments({ following: me._id }),
+            Follow.countDocuments({ follower: me._id }),
+            Bookmark.countDocuments({ user: me._id }),
+        ]);
+        return NextResponse.json({ success: true, data: { ...me.toObject(), postsCount, followersCount, followingCount, bookmarksCount } }, { status: 200 });
     } catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
