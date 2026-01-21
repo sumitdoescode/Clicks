@@ -37,6 +37,11 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
             return NextResponse.json({ success: false, message: `User not found with username : ${username}` }, { status: 404 });
         }
 
+        // cannot send message to yourself
+        if (me._id.toString() === otherUser._id.toString()) {
+            return NextResponse.json({ success: false, message: "You cannot send message to yourself" }, { status: 400 });
+        }
+
         // validate the data using zod schema
         const { text } = await request.json();
         const data = { text };
@@ -60,16 +65,18 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
             );
 
             if (!conversation) {
-                [conversation] = await Conversation.create([
-                    {
-                        participant1: me._id,
-                        participant2: otherUser._id,
-                    },
+                [conversation] = await Conversation.create(
+                    [
+                        {
+                            participant1: me._id,
+                            participant2: otherUser._id,
+                        },
+                    ],
                     { session: mongoSession },
-                ]);
+                );
             }
 
-            const message = await Message.create({ sender: me._id, receiver: otherUser._id, text: result.data.text, conversationId: conversation._id }, { session: mongoSession });
+            const [message] = await Message.create([{ sender: me._id, receiver: otherUser._id, text: result.data.text, conversationId: conversation._id }], { session: mongoSession });
 
             await Conversation.findByIdAndUpdate(
                 conversation._id,

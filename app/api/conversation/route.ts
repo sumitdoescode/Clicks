@@ -22,8 +22,8 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
         }
 
-        const loggedInUser = await User.findOne({ email: session.user.email });
-        if (!loggedInUser) {
+        const me = await User.findOne({ email: session.user.email });
+        if (!me) {
             return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
         }
 
@@ -31,22 +31,24 @@ export async function GET(request: NextRequest) {
         const conversations = await Conversation.aggregate([
             {
                 $match: {
-                    $or: [{ participant1: loggedInUser._id }, { participant2: loggedInUser._id }],
+                    $or: [{ participant1: me._id }, { participant2: me._id }],
                 },
             },
 
-            // Determine the other participant not the logged in user
+            // figure out the other user
             {
                 $addFields: {
                     otherParticipant: {
                         $cond: {
-                            $if: { $eq: ["$participant1", loggedInUser._id] },
+                            if: { $eq: ["$participant1", me._id] },
                             then: "$participant2",
                             else: "$participant1",
                         },
                     },
                 },
             },
+
+            // populate other user
             {
                 $lookup: {
                     from: "users",
@@ -55,12 +57,9 @@ export async function GET(request: NextRequest) {
                     as: "otherParticipant",
                 },
             },
-            {
-                $unwind: {
-                    path: "$otherparticipant",
-                    preserveNullAndEmptyArrays: true,
-                },
-            },
+            { $unwind: "$otherParticipant" },
+
+            // populate last message
             {
                 $lookup: {
                     from: "messages",
@@ -75,8 +74,9 @@ export async function GET(request: NextRequest) {
                     preserveNullAndEmptyArrays: true,
                 },
             },
+
+            // unread count (CORRECT way)
             {
-                // Calculate unread message count
                 $lookup: {
                     from: "messages",
                     let: { conversationId: "$_id" },
@@ -84,21 +84,16 @@ export async function GET(request: NextRequest) {
                         {
                             $match: {
                                 $expr: {
-                                    $and: [
-                                        { $eq: ["$conversationId", "$$conversationId"] },
-                                        { $eq: ["$receiver", loggedInUser._id] }, // Messages sent TO me
-                                        { $eq: ["$isRead", false] }, // Unread messages
-                                    ],
+                                    $and: [{ $eq: ["$conversationId", "$$conversationId"] }, { $eq: ["$receiver", me._id] }, { $eq: ["$isRead", false] }],
                                 },
                             },
                         },
-                        {
-                            $count: "count",
-                        },
+                        { $count: "count" },
                     ],
                     as: "unreadData",
                 },
             },
+
             {
                 $addFields: {
                     unreadCount: {
@@ -106,16 +101,13 @@ export async function GET(request: NextRequest) {
                     },
                 },
             },
-            {
-                $sort: {
-                    updatedAt: -1,
-                },
-            },
+
+            { $sort: { updatedAt: -1 } },
+
             {
                 $project: {
                     _id: 1,
                     otherParticipant: {
-                        _id: 1,
                         name: 1,
                         username: 1,
                         image: 1,
@@ -123,11 +115,9 @@ export async function GET(request: NextRequest) {
                     lastMessage: {
                         text: 1,
                         createdAt: 1,
-                        updatedAt: 1,
                         isRead: 1,
                     },
                     unreadCount: 1,
-                    createdAt: 1,
                     updatedAt: 1,
                 },
             },
