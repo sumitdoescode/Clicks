@@ -20,8 +20,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
             return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
         }
 
-        const loggedInUser = await User.findOne({ email: session.user.email });
-        if (!loggedInUser) {
+        const me = await User.findOne({ email: session.user.email }).select("_id");
+        if (!me) {
             return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
         }
 
@@ -30,21 +30,18 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
             return NextResponse.json({ success: false, message: "Invalid id" }, { status: 400 });
         }
 
-        const post = await Post.findById(id);
+        const post = await Post.findById(id).select("_id");
         if (!post) {
             return NextResponse.json({ success: false, message: `Post not found with id ${id}` }, { status: 404 });
         }
 
-        // check if user is already bookmarked that post
-        const bookmark = await Bookmark.findOne({ user: loggedInUser._id, post: post._id });
-        if (bookmark) {
-            // remove bookmark is already bookmared the post
-            await bookmark.deleteOne();
-            return NextResponse.json({ success: true, message: "Bookmark removed successfully", data: { bookmark: false } }, { status: 200 });
+        const deleted = await Bookmark.findOneAndDelete({ user: me._id, post: post._id });
+        if (deleted) {
+            return NextResponse.json({ success: true, message: "Bookmarked removed", data: { bookmark: false } }, { status: 200 });
         }
 
-        // add bookmark
-        await Bookmark.create({ user: loggedInUser._id, post: post._id });
+        await Bookmark.create({ user: me._id, post: post._id });
+
         return NextResponse.json({ success: true, message: "Bookmarked successfully", data: { bookmark: true } }, { status: 200 });
     } catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 500 });

@@ -1,14 +1,10 @@
 import { NextResponse } from "next/server";
 import { NextRequest } from "next/server";
 import User from "@/models/User.model";
-import Message from "@/models/Message.model";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { connectDB } from "@/lib/db";
-import { MessageSchema } from "@/schemas/message.schema";
-import { flattenError } from "zod";
 import Conversation from "@/models/Conversation.model";
-import { send } from "process";
 
 // get all conversations of logged in user
 // GET => api/conversation

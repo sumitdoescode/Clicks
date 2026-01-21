@@ -24,8 +24,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
             return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
         }
 
-        const loggedInUser = await User.findOne({ email: session.user.email });
-        if (!loggedInUser) {
+        const me = await User.findOne({ email: session.user.email });
+        if (!me) {
             return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
         }
 
@@ -110,8 +110,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
             return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
         }
 
-        const loggedInUser = await User.findOne({ email: session.user.email });
-        if (!loggedInUser) {
+        const me = await User.findOne({ email: session.user.email });
+        if (!me) {
             return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
         }
 
@@ -134,7 +134,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         }
 
         // create the comment
-        await Comment.create({ user: loggedInUser._id, post: post._id, text: result.data.text });
+        await Comment.create({ user: me._id, post: post._id, text: result.data.text });
         return NextResponse.json({ success: true, message: "Comment created successfully" }, { status: 201 });
     } catch (error: any) {
         return NextResponse.json({ success: false, message: error.message || "Internal Sever Error" }, { status: 500 });

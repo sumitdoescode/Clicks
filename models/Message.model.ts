@@ -30,6 +30,9 @@ const messageSchema = new Schema(
     { timestamps: true },
 );
 
+messageSchema.index({ conversationId: 1 }, { createdAt: 1 });
+messageSchema.index({ conversationId: 1, receiver: 1 });
+
 const Message = models.Message || model("Message", messageSchema);
 
 export default Message;

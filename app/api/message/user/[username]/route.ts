@@ -138,8 +138,6 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         }
 
         // conversation exists => messages exists
-        const messages = await Message.find({ conversationId: conversation._id }).sort({ createdAt: 1 });
-
         // update the isRead to true, of those message are which sent to me by other user
         await Message.updateMany(
             {
@@ -153,6 +151,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
                 },
             },
         );
+
+        const messages = await Message.find({ conversationId: conversation._id }).sort({ createdAt: 1 });
 
         return NextResponse.json({ success: true, data: { messages } }, { status: 200 });
     } catch (error: any) {

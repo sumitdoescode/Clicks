@@ -14,6 +14,8 @@ const bookmarkSchema = new Schema(
     { timestamps: true },
 );
 
+bookmarkSchema.index({ user: 1 }, { createdAt: -1 });
+
 const Bookmark = models.Bookmark || model("Bookmark", bookmarkSchema);
 
 export default Bookmark;

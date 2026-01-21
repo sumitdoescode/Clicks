@@ -19,15 +19,15 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
         }
 
-        const loggedInUser = await User.findOne({ email: session.user.email });
-        if (!loggedInUser) {
+        const me = await User.findOne({ email: session.user.email });
+        if (!me) {
             return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
         }
 
         const likedPosts = await Like.aggregate([
             {
                 $match: {
-                    user: loggedInUser._id,
+                    user: me._id,
                 },
             },
             {
@@ -77,11 +77,8 @@ export async function GET(request: NextRequest) {
                                 likesCount: { $size: "$likes" },
                                 bookmarksCount: { $size: "$bookmarks" },
                                 commentsCount: { $size: "$comments" },
-                                isLiked: {
-                                    $in: [loggedInUser._id, "$likes.user"],
-                                },
                                 isBookmarked: {
-                                    $in: [loggedInUser._id, "$bookmarks.user"],
+                                    $in: [me._id, "$bookmarks.user"],
                                 },
                             },
                         },
@@ -97,7 +94,7 @@ export async function GET(request: NextRequest) {
                                 bookmarksCount: 1,
                                 commentsCount: 1,
                                 isLiked: 1,
-                                isBookmared: 1,
+                                isBookmarked: 1,
                                 createdAt: 1,
                                 updatedAt: 1,
                             },

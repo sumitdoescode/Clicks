@@ -9,7 +9,7 @@ export const UserSchema = z.object({
         .min(3, "Username must be at least of 3 characters")
         .max(20, "Username can't be more than 20 characters"),
 
-    bio: z.string().min(5, "Bio must be at least of 5 characters").max(100, "Bio can't be more than 100 characters").optional(),
+    bio: z.string().min(5, "Bio must be at least of 5 characters").max(300, "Bio cannot exceed 300 characters").optional().or(z.literal("")), // Allow empty string as well
 
     image: z
         .instanceof(File)

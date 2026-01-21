@@ -21,8 +21,8 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
             return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
         }
 
-        const loggedInUser = await User.findOne({ email: session.user.email });
-        if (!loggedInUser) {
+        const me = await User.findOne({ email: session.user.email });
+        if (!me) {
             return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
         }
 
@@ -31,19 +31,30 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
             return NextResponse.json({ success: false, message: "Invalid id" }, { status: 400 });
         }
 
-        // check if comment exists
-        const comment = await Comment.findById(id);
-        if (!comment) {
+        // // check if comment exists
+        // const comment = await Comment.findById(id);
+
+        // if (!comment) {
+        //     return NextResponse.json({ success: false, message: "Comment not found" }, { status: 404 });
+        // }
+
+        // // check if comment belongs to user
+        // if (comment.user.toString() !== me._id.toString()) {
+        //     return NextResponse.json({ success: false, message: "Forbidden" }, { status: 403 });
+        // }
+
+        // // delete the comment
+        // await comment.deleteOne();
+
+        // fewer db queries
+        const deleted = await Comment.findOneAndDelete({
+            _id: id,
+            user: me._id,
+        });
+
+        if (!deleted) {
             return NextResponse.json({ success: false, message: "Comment not found" }, { status: 404 });
         }
-
-        // check if comment belongs to user
-        if (comment.user.toString() !== loggedInUser._id.toString()) {
-            return NextResponse.json({ success: false, message: "Forbidden" }, { status: 403 });
-        }
-
-        // delete the comment
-        await comment.deleteOne();
 
         return NextResponse.json({ success: true, message: "Comment Deleted Successfully" }, { status: 200 });
     } catch (error: any) {

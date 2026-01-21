@@ -95,30 +95,30 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
             return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
         }
 
-        const loggedInUser = await User.findOne({ email: session.user.email });
+        const me = await User.findOne({ email: session.user.email });
+        if (!me) {
+            return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
+        }
 
         const { username } = await params;
 
-        const user = await User.findOne({ username }).select("_id");
-        if (!user) {
+        const otherUser = await User.findOne({ username }).select("_id");
+        if (!otherUser) {
             return NextResponse.json({ success: false, message: `User not found with username ${username}` }, { status: 404 });
         }
 
         // cannot follow yourself
-        if (loggedInUser._id.toString() === user._id.toString()) {
+        if (me._id.toString() === otherUser._id.toString()) {
             return NextResponse.json({ success: false, message: "You cannot follow yourself" }, { status: 400 });
         }
 
-        // check if user is already following ?
-        const following = await Follow.findOne({ follower: loggedInUser._id, following: user._id });
-        if (following) {
-            // await Follow.deleteOne({ follower: loggedInUser._id, following: user._id });
-            await following.deleteOne();
-            return NextResponse.json({ success: true, message: "User unfollowed successfully", data: { follow: false } }, { status: 200 });
-        }
+        const deleted = await Follow.findOneAndDelete({ follower: me._id, following: otherUser._id });
 
-        // follow the user now
-        await Follow.create({ follower: loggedInUser._id, following: user._id });
+        if (deleted) {
+            // he found the follow and deleted it
+            return NextResponse.json({ success: true, message: "User Unfollowed successfully", data: { follow: false } }, { status: 200 });
+        }
+        await Follow.create({ follower: me._id, following: otherUser._id });
         return NextResponse.json({ success: true, message: "User followed successfully", data: { follow: true } }, { status: 200 });
     } catch (error: any) {
         return NextResponse.json({ error: error.message || "Internal Server Error" }, { status: 500 });

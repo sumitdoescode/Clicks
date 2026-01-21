@@ -18,12 +18,15 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
         }
 
-        const loggedInUser = await User.findOne({ email: session.user.email });
+        const me = await User.exists({ email: session.user.email });
+        if (!me) {
+            return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
+        }
 
         const bookmarks = await Bookmark.aggregate([
             {
                 $match: {
-                    user: loggedInUser._id,
+                    user: me._id,
                 },
             },
             {
@@ -47,27 +50,59 @@ export async function GET(request: NextRequest) {
                         {
                             $lookup: {
                                 from: "likes",
-                                localField: "post._id",
-                                foreignField: "post",
-                                as: "likes",
+                                let: { postId: "$_id" },
+                                pipeline: [
+                                    {
+                                        $match: {
+                                            $expr: {
+                                                $eq: ["$post", "$$postId"],
+                                            },
+                                        },
+                                    },
+                                    {
+                                        $count: "count",
+                                    },
+                                ],
+                                as: "likesCount",
                             },
                         },
-
                         {
                             $lookup: {
                                 from: "comments",
-                                localField: "post._id",
-                                foreignField: "post",
-                                as: "comments",
+                                let: { postId: "$_id" },
+                                pipeline: [
+                                    {
+                                        $match: {
+                                            $expr: {
+                                                $eq: ["$post", "$$postId"],
+                                            },
+                                        },
+                                    },
+                                    {
+                                        $count: "count",
+                                    },
+                                ],
+                                as: "commentsCount",
                             },
                         },
                         {
                             $addFields: {
-                                likesCount: { $size: "$likes" },
-                                isLiked: {
-                                    $in: [loggedInUser._id, "$likes.user"],
+                                likesCount: {
+                                    $ifNull: [
+                                        {
+                                            $arrayElemAt: ["$likesCount.count", 0],
+                                        },
+                                        0,
+                                    ],
                                 },
-                                commentsCount: { $size: "$comments" },
+                                commentsCount: {
+                                    $ifNull: [
+                                        {
+                                            $arrayElemAt: ["$commentsCount.count", 0],
+                                        },
+                                        0,
+                                    ],
+                                },
                             },
                         },
                         {
@@ -81,7 +116,6 @@ export async function GET(request: NextRequest) {
                                     image: 1,
                                 },
                                 likesCount: 1,
-                                isLiked: 1,
                                 commentsCount: 1,
                                 createdAt: 1,
                                 updatedAt: 1,

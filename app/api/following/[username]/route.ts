@@ -10,6 +10,7 @@ import { connectDB } from "@/lib/db";
 // GET => api/following/[username]
 export async function GET(request: NextRequest, { params }: { params: Promise<{ username: string }> }) {
     try {
+        await connectDB();
         const session = await auth.api.getSession({
             headers: await headers(), // you need to pass the headers object.
         });
@@ -17,19 +18,27 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
             return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
         }
 
-        await connectDB();
+        // not really necessary => extra DB query
+        // const me = await User.findOne({ email: session.user.email });
+        // if (!me) {
+        //     return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
+        // }
 
         const { username } = await params;
 
-        const user = await User.findOne({ username: username }).select("_id");
-        if (!user) {
+        if (!username || typeof username !== "string" || username.length < 3) {
+            return NextResponse.json({ success: false, message: "Invalid username" }, { status: 400 });
+        }
+
+        const otherUser = await User.findOne({ username }).select("_id");
+        if (!otherUser) {
             return NextResponse.json({ success: false, message: `User not found with username : ${username}` }, { status: 404 });
         }
 
         const following = await Follow.aggregate([
             {
                 $match: {
-                    follower: user._id,
+                    follower: otherUser._id,
                 },
             },
             {
@@ -41,7 +50,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
                     pipeline: [
                         {
                             $project: {
-                                _id: 0,
+                                _id: 1,
                                 name: 1,
                                 username: 1,
                                 image: 1,
@@ -51,11 +60,18 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
                 },
             },
             {
-                $unwind: "$following",
+                $unwind: {
+                    path: "$following",
+                    preserveNullAndEmptyArrays: true,
+                },
             },
+            { $replaceRoot: { newRoot: "$following" } },
             {
                 $project: {
-                    following: 1,
+                    _id: 1,
+                    name: 1,
+                    username: 1,
+                    image: 1,
                 },
             },
         ]);

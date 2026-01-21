@@ -100,8 +100,8 @@ export async function PUT(request: NextRequest) {
         if (!session?.user) {
             return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
         }
-        const loggedInUser = await User.findOne({ email: session.user.email });
-        if (!loggedInUser) {
+        const me = await User.findOne({ email: session.user.email });
+        if (!me) {
             return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
         }
         const formData = await request.formData();
@@ -111,27 +111,33 @@ export async function PUT(request: NextRequest) {
         const image = formData.get("image") as File;
 
         // extracted data into an object
-        const data = { name, username, bio, image };
+
+        const data = {
+            name,
+            username,
+            bio: bio || undefined, // if we didn't pass the bio from frontend, it will be null so make it undefined,
+            image: image || undefined,
+        };
 
         // validate the data using zod schema
         const result = UserSchema.safeParse(data);
         if (!result.success) {
-            return NextResponse.json({ success: false, merror: flattenError(result.error).fieldErrors }, { status: 400 });
+            return NextResponse.json({ success: false, error: flattenError(result.error).fieldErrors }, { status: 400 });
         }
 
         const updatedData = {
             name: result.data.name,
             username: result.data.username,
-            bio: result.data.bio || loggedInUser.bio, // keep the old if user didn't give a new bio
-            image: loggedInUser.image, // keep the old image by default
+            bio: result.data.bio || me.bio, // keep the old if user didn't give a new bio
+            image: me.image, // keep the old image by default
         };
 
         if (result.data.image) {
             // if user has given an image that means user wants to update the image
 
             // if previous image exists
-            if (loggedInUser.image) {
-                await del(loggedInUser.image);
+            if (me.image) {
+                await del(me.image);
             }
 
             // save new image to storage
@@ -144,12 +150,12 @@ export async function PUT(request: NextRequest) {
             updatedData.image = blob.url;
         }
 
-        await loggedInUser.updateOne({
+        await me.updateOne({
             $set: updatedData,
         });
 
         return NextResponse.json({ success: true, message: "User updated successfully" }, { status: 200 });
     } catch (error: any) {
-        return NextResponse.json({ error: error.message || "internal server error" }, { status: 500 });
+        return NextResponse.json({ error: error.message || "Internal server error" }, { status: 500 });
     }
 }

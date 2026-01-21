@@ -21,8 +21,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
             return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
         }
 
-        const loggedInUser = await User.findOne({ email: session.user.email });
-        if (!loggedInUser) {
+        const me = await User.findOne({ email: session.user.email });
+        if (!me) {
             return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
         }
 
@@ -32,23 +32,18 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         }
 
         // check if post exists
-        const post = await Post.findById(id);
+        const post = await Post.exists({ _id: id });
         if (!post) {
             return NextResponse.json({ success: false, message: "Post not found" }, { status: 404 });
         }
 
-        // check if user is already liked the post
-        const like = await Like.findOne({ user: loggedInUser._id, post: post._id });
-        if (like) {
-            // remove like is already liked the post
-            await like.deleteOne();
+        const deleted = await Like.findOneAndDelete({ user: me._id, post: post._id });
+        if (deleted) {
             return NextResponse.json({ success: true, message: "Like removed successfully", data: { like: false } }, { status: 200 });
         }
-
-        // add like
-        await Like.create({ user: loggedInUser._id, post: post._id });
+        await Like.create({ user: me._id, post: post._id });
         return NextResponse.json({ success: true, message: "Liked successfully", data: { like: true } }, { status: 200 });
     } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return NextResponse.json({ success: false, error: error.message || "Internal Server Error" }, { status: 500 });
     }
 }

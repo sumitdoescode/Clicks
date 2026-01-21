@@ -14,5 +14,10 @@ const likeSchema = new Schema(
     { timestamps: true },
 );
 
+likeSchema.index({ user: 1, post: 1 }, { unique: true }); // ensure pair must be unique
+likeSchema.index({ user: 1 });
+likeSchema.index({ post: 1 });
+
 const Like = models.Like || model("Like", likeSchema);
+
 export default Like;

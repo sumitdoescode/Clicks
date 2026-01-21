@@ -5,7 +5,7 @@ import User from "@/models/User.model";
 import Post from "@/models/Post.model";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
-import { put } from "@vercel/blob";
+import { put, del } from "@vercel/blob";
 import { PostSchema } from "@/schemas/post.schema";
 import { flattenError } from "zod";
 
@@ -22,8 +22,8 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
         }
 
-        const loggedInUser = await User.findOne({ email: session.user.email });
-        if (!loggedInUser) {
+        const me = await User.findOne({ email: session.user.email });
+        if (!me) {
             return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
         }
 
@@ -76,10 +76,10 @@ export async function GET(request: NextRequest) {
                 $addFields: {
                     likesCount: { $size: "$likes" },
                     isLiked: {
-                        $in: [loggedInUser._id, "$likes.user"],
+                        $in: [me._id, "$likes.user"],
                     },
                     isBookmarked: {
-                        $in: [loggedInUser._id, "$bookmarks.user"],
+                        $in: [me._id, "$bookmarks.user"],
                     },
                     commentsCount: { $size: "$comments" },
                 },
@@ -121,20 +121,20 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
         }
 
-        const loggedInUser = await User.findOne({ email: session.user.email });
-        if (!loggedInUser) {
+        const me = await User.findOne({ email: session.user.email });
+        if (!me) {
             return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
         }
 
         const formData = await request.formData();
+        const caption = formData.get("caption");
         const image = formData.get("image") as File;
-        const caption = formData.get("caption"); // if user won't even send caption key caption = null
 
-        if (!image) {
-            return NextResponse.json({ success: false, message: "Image is required" }, { status: 400 });
-        }
+        const data = { caption, image };
+        // if client didn't send the caption, caption will be null
+        // if client didn't sent the image, image will be null
 
-        const result = PostSchema.safeParse({ caption });
+        const result = PostSchema.safeParse(data);
         if (!result.success) {
             return NextResponse.json({ success: false, error: flattenError(result.error).fieldErrors }, { status: 400 });
         }
@@ -144,13 +144,20 @@ export async function POST(request: NextRequest) {
             addRandomSuffix: true,
         });
 
-        const post = await Post.create({
-            user: loggedInUser._id,
-            caption: result.data.caption,
-            image: blob.url,
-        });
-
-        return NextResponse.json({ success: true, message: "Post created successfully", data: { post } }, { status: 200 });
+        try {
+            const post = await Post.create({
+                user: me._id,
+                caption: result.data.caption,
+                image: blob.url,
+            });
+            return NextResponse.json({ success: true, message: "Post created successfully", data: { post } }, { status: 200 });
+        } catch (error) {
+            // delete the image if post creation fails
+            if (blob) {
+                await del(blob.url);
+            }
+            throw error;
+        }
     } catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }

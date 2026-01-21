@@ -6,7 +6,7 @@ import Post from "@/models/Post.model";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { put, del } from "@vercel/blob";
-import { PostSchema } from "@/schemas/post.schema";
+import { UpdatePostSchema } from "@/schemas/post.schema";
 import { flattenError } from "zod";
 import { isValidObjectId } from "mongoose";
 
@@ -44,13 +44,18 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
             return NextResponse.json({ success: false, message: "Forbidden" }, { status: 403 });
         }
 
-        // delete the post image from storage
-        if (post.image) {
-            await del(post.image);
-        }
-
         // delete the post from database
         await post.deleteOne();
+
+        // delete the post image from storage
+        try {
+            if (post.image) {
+                await del(post.image);
+            }
+        } catch (error) {
+            // if image deletion fails, don't throw an error
+            console.log(error);
+        }
 
         return NextResponse.json({ success: true, message: "Post Deleted Successfully" }, { status: 200 });
     } catch (error: any) {
@@ -58,9 +63,8 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     }
 }
 
-// Update a post by id
+// Update a post by id (can only update caption)
 // PUT => api/post/[id]
-// user can update their post image and caption
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         await connectDB();
@@ -93,39 +97,21 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
             return NextResponse.json({ success: false, message: "Forbidden" }, { status: 403 });
         }
 
-        const formData = await request.formData();
-        const image = formData.get("image") as File;
-        const caption = formData.get("caption"); // if user won't even send caption key caption = null
+        const { caption } = await request.json();
 
-        if (!image) {
-            return NextResponse.json({ success: false, message: "Image is required" }, { status: 400 });
-        }
-
-        const result = PostSchema.safeParse({ caption });
+        const result = UpdatePostSchema.safeParse({ caption });
         if (!result.success) {
             return NextResponse.json({ success: false, error: flattenError(result.error).fieldErrors }, { status: 400 });
         }
 
-        // remove old image from storage
-        if (post.image) {
-            await del(post.image);
-        }
-
-        // save new post image to storage
-        const blob = await put(image.name, image, {
-            access: "public",
-            addRandomSuffix: true,
-        });
-
         await post.updateOne({
             $set: {
                 caption: result.data.caption,
-                image: blob.url,
             },
         });
 
         return NextResponse.json({ success: true, message: "Post updated successfully" }, { status: 200 });
     } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     }
 }

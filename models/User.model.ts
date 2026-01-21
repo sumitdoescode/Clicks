@@ -15,7 +15,6 @@ const userSchema = new Schema(
             type: String,
             required: true,
             unique: true,
-            index: true,
         },
         bio: {
             type: String,
@@ -28,6 +27,9 @@ const userSchema = new Schema(
     },
     { timestamps: true },
 );
+
+userSchema.index({ email: 1 }, { unique: true });
+userSchema.index({ username: 1 }, { unique: true });
 
 const User = models.User || model("User", userSchema);
 
