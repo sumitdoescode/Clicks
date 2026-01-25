@@ -5,10 +5,12 @@ const likeSchema = new Schema(
         user: {
             type: Schema.Types.ObjectId,
             ref: "User",
+            required: true,
         }, // who is doing the like
         post: {
             type: Schema.Types.ObjectId,
             ref: "Post",
+            required: true,
         }, // who is being liked
     },
     { timestamps: true },

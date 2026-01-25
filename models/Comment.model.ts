@@ -5,10 +5,12 @@ const commentSchema = new Schema(
         user: {
             type: Schema.Types.ObjectId,
             ref: "User",
+            required: true,
         },
         post: {
             type: Schema.Types.ObjectId,
             ref: "Post",
+            required: true,
         },
         text: {
             type: String,
@@ -19,7 +21,7 @@ const commentSchema = new Schema(
     { timestamps: true },
 );
 
-commentSchema.index({ post: 1 }, { createdAt: -1 });
+commentSchema.index({ post: 1, createdAt: -1 });
 
 const Comment = models.Comment || model("Comment", commentSchema);
 

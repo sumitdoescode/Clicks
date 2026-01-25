@@ -5,14 +5,17 @@ const conversationSchema = new Schema(
         participant1: {
             type: Schema.Types.ObjectId,
             ref: "User",
+            required: true,
         },
         participant2: {
             type: Schema.Types.ObjectId,
             ref: "User",
+            required: true,
         },
         lastMessage: {
             type: Schema.Types.ObjectId,
             ref: "Message",
+            required: true,
         },
     },
     { timestamps: true },

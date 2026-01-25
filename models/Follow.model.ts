@@ -5,10 +5,12 @@ const followSchema = new Schema(
         follower: {
             type: Schema.Types.ObjectId,
             ref: "User",
+            required: true,
         }, // who is doing the follow
         following: {
             type: Schema.Types.ObjectId,
             ref: "User",
+            required: true,
         }, // who is being followed
     },
     { timestamps: true },

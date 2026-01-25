@@ -5,6 +5,7 @@ const postSchema = new Schema(
         user: {
             type: Schema.Types.ObjectId,
             ref: "User",
+            required: true,
         },
         caption: {
             type: String,
@@ -20,7 +21,7 @@ const postSchema = new Schema(
     { timestamps: true },
 );
 
-postSchema.index({ user: 1 }, { createdAt: -1 });
+postSchema.index({ user: 1, createdAt: -1 });
 
 const Post = models.Post || model("Post", postSchema);
 
