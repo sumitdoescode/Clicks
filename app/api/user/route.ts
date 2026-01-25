@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
         ]);
         return NextResponse.json({ success: true, data: { ...me.toObject(), postsCount, followersCount, followingCount, bookmarksCount } }, { status: 200 });
     } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return NextResponse.json({ error: error.message || "Internal server error" }, { status: 500 });
     }
 }
 

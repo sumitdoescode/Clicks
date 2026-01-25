@@ -31,22 +31,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
             return NextResponse.json({ success: false, message: "Invalid id" }, { status: 400 });
         }
 
-        // // check if comment exists
-        // const comment = await Comment.findById(id);
-
-        // if (!comment) {
-        //     return NextResponse.json({ success: false, message: "Comment not found" }, { status: 404 });
-        // }
-
-        // // check if comment belongs to user
-        // if (comment.user.toString() !== me._id.toString()) {
-        //     return NextResponse.json({ success: false, message: "Forbidden" }, { status: 403 });
-        // }
-
-        // // delete the comment
-        // await comment.deleteOne();
-
-        // fewer db queries
+        // fewew db queries this way
         const deleted = await Comment.findOneAndDelete({
             _id: id,
             user: me._id,

@@ -28,8 +28,8 @@ const userSchema = new Schema(
     { timestamps: true },
 );
 
-userSchema.index({ email: 1 }, { unique: true });
-userSchema.index({ username: 1 }, { unique: true });
+userSchema.index({ email: 1 });
+userSchema.index({ username: 1 });
 
 const User = models.User || model("User", userSchema);
 

@@ -28,8 +28,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         }
 
         const { username } = await params;
-        if (!username) {
-            return NextResponse.json({ success: false, message: "Username is required" }, { status: 400 });
+        if (!username || typeof username !== "string" || username.length < 3) {
+            return NextResponse.json({ success: false, message: "Username is required or invalid" }, { status: 400 });
         }
 
         const otherUser = await User.findOne({ username }).select("_id");
@@ -111,7 +111,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
             return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
         }
 
-        const me = await User.findOne({ email: session.user.email });
+        const me = await User.exists({ email: session.user.email });
         if (!me) {
             return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
         }
@@ -121,7 +121,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
             return NextResponse.json({ success: false, message: "Username is required" }, { status: 400 });
         }
 
-        const otherUser = await User.findOne({ username }).select("_id");
+        const otherUser = await User.exists({ username: username.toLowerCase() });
         if (!otherUser) {
             return NextResponse.json({ success: false, message: `User not found with username : ${username}` }, { status: 404 });
         }

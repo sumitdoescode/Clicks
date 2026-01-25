@@ -20,7 +20,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
             return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
         }
 
-        const me = await User.findOne({ email: session.user.email }).select("_id");
+        const me = await User.exists({ email: session.user.email });
         if (!me) {
             return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
         }
@@ -30,7 +30,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
             return NextResponse.json({ success: false, message: "Invalid id" }, { status: 400 });
         }
 
-        const post = await Post.findById(id).select("_id");
+        const post = await Post.exists({ _id: id });
         if (!post) {
             return NextResponse.json({ success: false, message: `Post not found with id ${id}` }, { status: 404 });
         }
@@ -44,6 +44,6 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
         return NextResponse.json({ success: true, message: "Bookmarked successfully", data: { bookmark: true } }, { status: 200 });
     } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return NextResponse.json({ error: error.message || "Internal Server Error" }, { status: 500 });
     }
 }

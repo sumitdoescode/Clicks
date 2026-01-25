@@ -9,6 +9,7 @@ import { isValidObjectId } from "mongoose";
 import { CommentSchema } from "@/schemas/comment.schema";
 import { flattenError } from "zod";
 import Post from "@/models/Post.model";
+import mongoose from "mongoose";
 
 // Get all comments of a post by post id
 // GET => api/comment/post/[id]
@@ -35,7 +36,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         }
 
         // check if post exists
-        const post = await Post.findById(id);
+        const post = await Post.findById(id).select("user");
         if (!post) {
             return NextResponse.json({ success: false, message: "Post not found" }, { status: 404 });
         }
@@ -69,7 +70,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
             {
                 $addFields: {
                     isPostOwner: {
-                        $eq: ["$user._id", post.user],
+                        $eq: ["$user._id", new mongoose.Types.ObjectId(post.user)],
                     },
                 },
             },
@@ -110,7 +111,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
             return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
         }
 
-        const me = await User.findOne({ email: session.user.email });
+        const me = await User.findOne({ email: session.user.email }).select("_id");
         if (!me) {
             return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
         }
@@ -121,7 +122,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         }
 
         // check if post exists
-        const post = await Post.findById(id);
+        const post = await Post.exists({ _id: id });
+
         if (!post) {
             return NextResponse.json({ success: false, message: "Post not found" }, { status: 404 });
         }
