@@ -3,16 +3,20 @@ import type { NextRequest } from "next/server";
 import { connectDB } from "@/lib/db";
 import User from "@/models/User.model";
 import Post from "@/models/Post.model";
+import Like from "@/models/Like.model";
+import Comment from "@/models/Comment.model";
+import Bookmark from "@/models/Bookmark.model";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { put, del } from "@vercel/blob";
 import { UpdatePostSchema } from "@/schemas/post.schema";
 import { flattenError } from "zod";
-import { isValidObjectId } from "mongoose";
+import mongoose, { isValidObjectId } from "mongoose";
 
 // Delete a post by id
 // DELETE => api/post/[id]
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+    let mongoSession: any;
     try {
         await connectDB();
 
@@ -23,8 +27,8 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
             return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
         }
 
-        const loggedInUser = await User.findOne({ email: session.user.email });
-        if (!loggedInUser) {
+        const me = await User.exists({ email: session.user.email });
+        if (!me) {
             return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
         }
 
@@ -40,12 +44,17 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
         }
 
         // check if post belongs to user
-        if (post.user.toString() !== loggedInUser._id.toString()) {
+        if (post.user.toString() !== me._id.toString()) {
             return NextResponse.json({ success: false, message: "Forbidden" }, { status: 403 });
         }
 
-        // delete the post from database
-        await post.deleteOne();
+        mongoSession = await Post.startSession();
+
+        await mongoSession.withTransaction(async () => {
+            await Promise.all([Like.deleteMany({ post: post._id }, { session: mongoSession }), Comment.deleteMany({ post: post._id }, { session: mongoSession }), Bookmark.deleteMany({ post: post._id }, { session: mongoSession })]);
+
+            await post.deleteOne({ session: mongoSession });
+        });
 
         // delete the post image from storage
         try {
@@ -60,6 +69,10 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
         return NextResponse.json({ success: true, message: "Post Deleted Successfully" }, { status: 200 });
     } catch (error: any) {
         return NextResponse.json({ error: error.message || "Internal Server Error" }, { status: 500 });
+    } finally {
+        if (mongoSession) {
+            await mongoSession.endSession();
+        }
     }
 }
 

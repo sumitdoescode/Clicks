@@ -23,8 +23,8 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
             return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
         }
 
-        const loggedInUser = await User.findOne({ email: session.user.email });
-        if (!loggedInUser) {
+        const me = await User.exists({ email: session.user.email });
+        if (!me) {
             return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
         }
 
@@ -39,7 +39,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
         await mongoSession.withTransaction(async () => {
             const conversation = await Conversation.findOneAndDelete({
                 _id: id,
-                $or: [{ participant1: loggedInUser._id }, { participant2: loggedInUser._id }],
+                $or: [{ participant1: me._id }, { participant2: me._id }],
             });
             if (!conversation) {
                 throw new Error("CONVERSATION_NOT_FOUND");
