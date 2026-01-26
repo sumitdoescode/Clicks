@@ -62,25 +62,29 @@ export async function PUT(request: NextRequest) {
         const bio = formData.get("bio");
         const image = formData.get("image") as File;
 
+        console.log({ bio });
+
         // extracted data into an object
 
         const data = {
             name,
             username,
-            bio: bio || undefined, // if we didn't pass the bio from frontend, it will be null so make it undefined,
+            bio: bio || "", // if we didn't pass the bio from frontend, it will be null so make it undefined,
             image: image || undefined,
         };
+
+        console.log({ data });
 
         // validate the data using zod schema
         const result = UserSchema.safeParse(data);
         if (!result.success) {
-            return NextResponse.json({ success: false, error: flattenError(result.error).fieldErrors }, { status: 400 });
+            return NextResponse.json({ success: false, error: flattenError(result.error).fieldErrors, errorType: "VALIDATION_ERROR" }, { status: 400 });
         }
 
         const updatedData = {
             name: result.data.name,
             username: result.data.username,
-            bio: result.data.bio || me.bio, // keep the old if user didn't give a new bio
+            bio: result.data.bio,
             image: me.image, // keep the old image by default
         };
 

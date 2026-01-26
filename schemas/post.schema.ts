@@ -1,9 +1,9 @@
 import { z } from "zod";
 
 export const PostSchema = z.object({
-    caption: z.string("Caption cannot be empty").min(1, "Caption cannot be empty").max(300, "Caption cannot exceed 300 characters"),
+    caption: z.string("Caption cannot be empty").min(1, "Caption cannot be empty").max(100, "Caption cannot exceed 100 characters"),
     image: z
-        .instanceof(File, "Image is required")
+        .instanceof(File, { message: "Image is required" })
         .refine((file) => file.size <= 5 * 1024 * 1024, "Image size cannot exceed 5MB")
         .refine((file) => ["image/jpeg", "image/jpg", "image/png"].includes(file.type), "Only .jpg, .jpeg and .png formats are supported"),
 });

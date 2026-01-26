@@ -36,6 +36,7 @@ const userSchema = new Schema(
 userSchema.index({ email: 1 });
 userSchema.index({ username: 1 });
 
+// a very big cleanup is required here
 // delete the user data if user is deleted
 // userSchema.pre("remove", async function (next) {
 //     await Post.deleteMany({ user: this._id });

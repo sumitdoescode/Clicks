@@ -102,7 +102,7 @@ export async function GET(request: NextRequest) {
             },
         ]);
 
-        return NextResponse.json({ success: true, data: { posts } }, { status: 200 });
+        return NextResponse.json({ success: true, posts }, { status: 200 });
     } catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
@@ -136,7 +136,7 @@ export async function POST(request: NextRequest) {
 
         const result = PostSchema.safeParse(data);
         if (!result.success) {
-            return NextResponse.json({ success: false, error: flattenError(result.error).fieldErrors }, { status: 400 });
+            return NextResponse.json({ success: false, error: flattenError(result.error).fieldErrors, errorType: "VALIDATION_ERROR" }, { status: 400 });
         }
 
         const blob = await put(image.name, image, {
