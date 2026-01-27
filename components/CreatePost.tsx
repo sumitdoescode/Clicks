@@ -18,6 +18,7 @@ type PostForm = {
     image: File | null;
 };
 
+
 type ErrorType = {
     caption?: string[];
     image?: string[];
@@ -68,6 +69,8 @@ const CreatePost = () => {
             setFormData({ ...formData, image: file });
             setErrors({ ...errors, image: undefined });
         }
+
+
     };
 
     const createPost = async () => {
