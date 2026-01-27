@@ -36,6 +36,7 @@ const Post = ({ _id, image, caption, likesCount, commentsCount, isLiked, isBookm
         <Item className="border border-muted rounded-xl">
             <ItemHeader>
                 <div className="flex gap-2 items-center">
+                    4
                     <Avatar className="w-12 h-12">
                         <AvatarImage src={userImage} className="" />
                         <AvatarFallback>{username.slice(0, 2)}</AvatarFallback>
