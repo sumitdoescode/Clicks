@@ -93,7 +93,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
             },
         ]);
 
-        return NextResponse.json({ success: true, data: { comments } }, { status: 200 });
+        return NextResponse.json({ success: true, comments }, { status: 200 });
     } catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }

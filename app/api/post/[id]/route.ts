@@ -26,7 +26,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
             return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
         }
 
-        const me = await User.findOne({ email: session.user.email });
+        const me = await User.exists({ email: session.user.email });
         if (!me) {
             return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
         }
@@ -38,7 +38,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
         const post = await Post.findById(id).populate({
             path: "user",
-            select: "name username image",
+            select: "_id name username image",
         });
         if (!post) {
             return NextResponse.json({ success: false, message: "Post not found" }, { status: 404 });
@@ -48,8 +48,9 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         const postData = {
             ...post.toObject(),
             likesCount,
-            isLiked,
-            isBookmarked,
+            isLiked: isLiked ? true : false,
+            isBookmarked: isBookmarked ? true : false,
+            isPostOwner: post.user._id.toString() === me._id.toString(),
         };
         return NextResponse.json({ success: true, post: postData }, { status: 200 });
     } catch (error: any) {

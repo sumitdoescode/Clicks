@@ -23,14 +23,16 @@ interface IPost {
     commentsCount: number;
     isLiked: boolean;
     isBookmarked: boolean;
+    isPostOwner?: boolean;
     user: {
+        _id?: string;
         name: string;
         username: string;
         image?: string;
     };
 }
 
-const Post = ({ _id, image, caption, likesCount, commentsCount, isLiked, isBookmarked, user: { name, username, image: userImage } }: IPost) => {
+const Post = ({ _id, image, caption, likesCount, commentsCount, isLiked, isBookmarked, isPostOwner, user: { name, username, image: userImage } }: IPost) => {
     const [isLikedState, setIsLikedState] = useState<boolean>(isLiked);
     const [isBookmarkedState, setIsBookmarkedState] = useState<boolean>(isBookmarked);
     const [isLiking, setIsLiking] = useState<boolean>(false);
@@ -91,9 +93,11 @@ const Post = ({ _id, image, caption, likesCount, commentsCount, isLiked, isBookm
                 </Link>
             </ItemHeader>
             <ItemContent>
-                <ItemMedia className="w-full">
-                    <Image src={image} alt="post image" className="w-full h-auto object-cover rounded-lg" width={500} height={500} priority />
-                </ItemMedia>
+                <Link href={`/post/${_id}`}>
+                    <ItemMedia className="w-full">
+                        <Image src={image} alt="post image" className="w-full h-auto object-cover rounded-lg" width={500} height={500} priority />
+                    </ItemMedia>
+                </Link>
             </ItemContent>
             <ItemFooter className="mt-3 w-full">
                 <div className="flex flex-col gap-4 w-full">
@@ -145,11 +149,13 @@ const Post = ({ _id, image, caption, likesCount, commentsCount, isLiked, isBookm
                         <p className="text-md text-muted-foreground">
                             {likesCountState} {likesCountState > 1 ? "likes" : "like"}
                         </p>
-                        <ItemTitle className="mt-1">{caption}</ItemTitle>
+                        <ItemTitle className="mt-1">{caption!?.length > 100 ? `${caption?.slice(0, 100)}...` : caption}</ItemTitle>
                     </div>
-                    <div>
-                        <ItemDescription>{commentsCount} comments</ItemDescription>
-                    </div>
+                    {commentsCount && (
+                        <div>
+                            <ItemDescription>{commentsCount} sdfasdf comments</ItemDescription>
+                        </div>
+                    )}
                 </div>
             </ItemFooter>
         </Item>
