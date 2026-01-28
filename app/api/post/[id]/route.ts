@@ -13,6 +13,50 @@ import { UpdatePostSchema } from "@/schemas/post.schema";
 import { flattenError } from "zod";
 import mongoose, { isValidObjectId } from "mongoose";
 
+// Get a post by id
+// GET => api/post/[id]
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+    try {
+        await connectDB();
+
+        const session = await auth.api.getSession({
+            headers: await headers(), // you need to pass the headers object.
+        });
+        if (!session?.user) {
+            return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
+        }
+
+        const me = await User.findOne({ email: session.user.email });
+        if (!me) {
+            return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
+        }
+
+        const { id } = await params;
+        if (!id || !isValidObjectId(id)) {
+            return NextResponse.json({ success: false, message: "Invalid id" }, { status: 400 });
+        }
+
+        const post = await Post.findById(id).populate({
+            path: "user",
+            select: "name username image",
+        });
+        if (!post) {
+            return NextResponse.json({ success: false, message: "Post not found" }, { status: 404 });
+        }
+
+        const [likesCount, isLiked, isBookmarked] = await Promise.all([Like.countDocuments({ post: post._id }), Like.exists({ user: me._id, post: post._id }), Bookmark.exists({ user: me._id, post: post._id })]);
+        const postData = {
+            ...post.toObject(),
+            likesCount,
+            isLiked,
+            isBookmarked,
+        };
+        return NextResponse.json({ success: true, post: postData }, { status: 200 });
+    } catch (error: any) {
+        return NextResponse.json({ error: error.message || "Internal server error" }, { status: 500 });
+    }
+}
+
 // Delete a post by id
 // DELETE => api/post/[id]
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {

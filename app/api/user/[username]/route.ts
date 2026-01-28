@@ -30,7 +30,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         }
         const [postsCount, followersCount, followingCount] = await Promise.all([Post.countDocuments({ user: user._id }), Follow.countDocuments({ following: user._id }), Follow.countDocuments({ follower: user._id })]);
 
-        return NextResponse.json({ success: true, data: { ...user.toObject(), postsCount, followersCount, followingCount } }, { status: 200 });
+        return NextResponse.json({ success: true, user: { ...user.toObject(), postsCount, followersCount, followingCount } }, { status: 200 });
     } catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }

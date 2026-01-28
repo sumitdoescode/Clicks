@@ -1,20 +1,19 @@
 "use client";
-import { Field, FieldContent, FieldDescription, FieldError, FieldGroup, FieldLabel, FieldLegend, FieldSeparator, FieldSet, FieldTitle } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
-import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import { PostSchema, type Post } from "@/schemas/post.schema";
 import Image from "next/image";
-import { flattenError } from "zod";
-import { Spinner } from "./ui/spinner";
 import axios from "axios";
 import { toast } from "sonner";
 import { Item, ItemActions, ItemContent, ItemDescription, ItemFooter, ItemHeader, ItemMedia, ItemTitle } from "@/components/ui/item";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Toggle } from "@/components/ui/toggle";
 import { BookmarkIcon, Heart } from "lucide-react";
+import Link from "next/link";
+import { Send, Copy } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger, AlertDialogMedia } from "@/components/ui/alert-dialog";
 
 interface IPost {
     _id: string;
@@ -32,41 +31,119 @@ interface IPost {
 }
 
 const Post = ({ _id, image, caption, likesCount, commentsCount, isLiked, isBookmarked, user: { name, username, image: userImage } }: IPost) => {
+    const [isLikedState, setIsLikedState] = useState<boolean>(isLiked);
+    const [isBookmarkedState, setIsBookmarkedState] = useState<boolean>(isBookmarked);
+    const [isLiking, setIsLiking] = useState<boolean>(false);
+    const [isBookmarking, setIsBookmarking] = useState<boolean>(false);
+    const [likesCountState, setLikesCountState] = useState<number>(likesCount);
+    const [postUrl, setPostUrl] = useState<string>(`${process.env.NEXT_PUBLIC_APP_URL}/post/${_id}`);
+
+    const handleLike = async () => {
+        setIsLiking(true);
+        setIsLikedState(!isLikedState);
+        try {
+            const { data } = await axios.post(`/api/like/post/${_id}`);
+            console.log(data);
+            if (data.success && data.isLike) {
+                setLikesCountState((prev) => prev + 1);
+                return;
+            }
+            setLikesCountState((prev) => prev - 1);
+        } catch (error: any) {
+            // revert the state
+            setIsLikedState(!isLikedState);
+            setLikesCountState((prev) => prev - 1);
+            toast.error(error.response.data.message);
+        } finally {
+            setIsLiking(false);
+        }
+    };
+
+    const handleBookmark = async () => {
+        setIsBookmarking(true);
+        setIsBookmarkedState(!isBookmarkedState);
+        try {
+            const { data } = await axios.post(`/api/bookmark/post/${_id}`);
+            console.log(data);
+        } catch (error: any) {
+            // revert the state
+            setIsBookmarkedState(!isBookmarkedState);
+            toast.error(error.response.data.message);
+        } finally {
+            setIsBookmarking(false);
+        }
+    };
+
     return (
         <Item className="border border-muted rounded-xl">
             <ItemHeader>
-                <div className="flex gap-2 items-center">
-                    4
-                    <Avatar className="w-12 h-12">
-                        <AvatarImage src={userImage} className="" />
-                        <AvatarFallback>{username.slice(0, 2)}</AvatarFallback>
-                    </Avatar>
-                    <div>
-                        <p className="text-md font-medium">{name}</p>
-                        <p className="text-sm text-muted-foreground">@{username}</p>
+                <Link href={`/${username}`}>
+                    <div className="flex gap-2 items-center cursor-pointer">
+                        <Avatar className="w-12 h-12">
+                            <AvatarImage src={userImage} className="" />
+                            <AvatarFallback>{username.slice(0, 2)}</AvatarFallback>
+                        </Avatar>
+                        <div>
+                            <p className="text-md font-medium">{name}</p>
+                            <p className="text-sm text-muted-foreground">@{username}</p>
+                        </div>
                     </div>
-                </div>
+                </Link>
             </ItemHeader>
             <ItemContent>
-                <ItemMedia>
-                    <Image src={image} alt="post image" className="w-full h-full object-cover rounded-lg" width={500} height={500} />
+                <ItemMedia className="w-full">
+                    <Image src={image} alt="post image" className="w-full h-auto object-cover rounded-lg" width={500} height={500} priority />
                 </ItemMedia>
             </ItemContent>
-            <ItemFooter>
-                <div className="flex flex-col gap-3">
-                    <div className="flex gap-2">
-                        <Toggle aria-label="Toggle like" variant="outline">
-                            <Heart className="group-data-[state=on]/toggle:fill-rose-600" />
-                            Like
-                        </Toggle>
-                        <Toggle aria-label="Toggle bookmark" variant="outline">
-                            <BookmarkIcon className="group-data-[state=on]/toggle:fill-primary" />
-                            Bookmark
-                        </Toggle>
+            <ItemFooter className="mt-3 w-full">
+                <div className="flex flex-col gap-4 w-full">
+                    <div className="flex items-center justify-between w-full">
+                        <div className="flex gap-2">
+                            <Toggle aria-label="Toggle like" variant="outline" size={"lg"} pressed={isLikedState} onPressedChange={handleLike} disabled={isLiking}>
+                                <Heart className="group-data-[state=on]/toggle:fill-rose-600" />
+                                Like
+                            </Toggle>
+                            <Toggle aria-label="Toggle bookmark" variant="default" size={"lg"} pressed={isBookmarkedState} onPressedChange={handleBookmark} disabled={isBookmarking}>
+                                <BookmarkIcon className="group-data-[state=on]/toggle:fill-primary" />
+                                Bookmark
+                            </Toggle>
+                        </div>
+                        <div>
+                            <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                    <Button variant={"default"} size={"lg"}>
+                                        <Send size={30} />
+                                    </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                        <AlertDialogMedia>
+                                            <Send />
+                                        </AlertDialogMedia>
+                                        <AlertDialogTitle>Share this post?</AlertDialogTitle>
+                                        <AlertDialogDescription>Copy the link to share this post with your friends.</AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <Input id="url" type="url" value={postUrl} readOnly />
+                                    <AlertDialogFooter>
+                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                        <AlertDialogAction
+                                            onClick={async () => {
+                                                await navigator.clipboard.writeText(postUrl);
+                                                toast.success("Copied to clipboard");
+                                            }}
+                                        >
+                                            Copy
+                                            <Copy size={20} />
+                                        </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
+                        </div>
                     </div>
+
                     <div>
                         <p className="text-md text-muted-foreground">
-                            {likesCount} {likesCount > 1 ? "likes" : "like"}
+                            {likesCountState} {likesCountState > 1 ? "likes" : "like"}
                         </p>
                         <ItemTitle className="mt-1">{caption}</ItemTitle>
                     </div>

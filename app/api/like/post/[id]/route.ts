@@ -39,10 +39,10 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
         const deleted = await Like.findOneAndDelete({ user: me._id, post: post._id });
         if (deleted) {
-            return NextResponse.json({ success: true, message: "Like removed successfully", data: { like: false } }, { status: 200 });
+            return NextResponse.json({ success: true, message: "Like removed successfully", isLike: false }, { status: 200 });
         }
         await Like.create({ user: me._id, post: post._id });
-        return NextResponse.json({ success: true, message: "Liked successfully", data: { like: true } }, { status: 200 });
+        return NextResponse.json({ success: true, message: "Liked successfully", isLike: true }, { status: 200 });
     } catch (error: any) {
         return NextResponse.json({ success: false, error: error.message || "Internal Server Error" }, { status: 500 });
     }

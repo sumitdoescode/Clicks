@@ -37,12 +37,12 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
         const deleted = await Bookmark.findOneAndDelete({ user: me._id, post: post._id });
         if (deleted) {
-            return NextResponse.json({ success: true, message: "Bookmarked removed", data: { bookmark: false } }, { status: 200 });
+            return NextResponse.json({ success: true, message: "Bookmarked removed", isBookmark: false }, { status: 200 });
         }
 
         await Bookmark.create({ user: me._id, post: post._id });
 
-        return NextResponse.json({ success: true, message: "Bookmarked successfully", data: { bookmark: true } }, { status: 200 });
+        return NextResponse.json({ success: true, message: "Bookmarked successfully", isBookmark: true }, { status: 200 });
     } catch (error: any) {
         return NextResponse.json({ error: error.message || "Internal Server Error" }, { status: 500 });
     }
