@@ -2,7 +2,7 @@
 import { Camera, GalleryVerticalEnd } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel, FieldSeparator } from "@/components/ui/field";
+import { Field, FieldError, FieldGroup, FieldLabel, FieldSeparator } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { ResetPasswordSchema } from "@/schemas/auth.schema";
 import type { ResetPasswordType } from "@/schemas/auth.schema";
@@ -12,7 +12,6 @@ import { authClient } from "@/lib/auth-client";
 import { toast } from "sonner";
 import { Spinner } from "@/components/ui/spinner";
 import Link from "next/link";
-import { setTimeout } from "timers/promises";
 
 type ErrorType = {
     newPassword?: string[];

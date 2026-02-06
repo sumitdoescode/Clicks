@@ -41,14 +41,13 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
             {
                 email: result.data.email,
                 password: result.data.password,
-                callbackURL: "/dashboard",
             },
             {
                 onSuccess: (ctx) => {
                     redirect("/dashboard");
                 },
                 onError: (ctx) => {
-                    // if user email is not verified, status code 403
+                    // if user email is not verified, status code will be 403
                     if (ctx.error.status === 403) {
                         toast.info("We've sent you a verification email. Please verify your email to continue.");
                     }
@@ -58,6 +57,7 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
         setLoading(false);
 
         if (error) {
+            console.log(error);
             setErrors({ ...errors, backendError: error.message });
             return;
         }

@@ -14,12 +14,10 @@ const userSchema = new Schema(
         username: {
             type: String,
             required: true,
-            unique: true,
         },
         email: {
             type: String,
             required: true,
-            unique: true,
         },
         bio: {
             type: String,
@@ -33,21 +31,8 @@ const userSchema = new Schema(
     { timestamps: true },
 );
 
-userSchema.index({ email: 1 });
-userSchema.index({ username: 1 });
-
-// a very big cleanup is required here
-// delete the user data if user is deleted
-// userSchema.pre("remove", async function (next) {
-//     await Post.deleteMany({ user: this._id });
-//     // delete the post image
-//     try {
-//         await del();
-//     } catch (error) {
-//         console.log(error);
-//     }
-//     await Like.deleteMany({ user: this._id });
-// });
+userSchema.index({ email: 1 }, { unique: true });
+userSchema.index({ username: 1 }, { unique: true });
 
 const User = models.User || model("User", userSchema);
 

@@ -13,13 +13,13 @@ const EmailVerificationTemplate = ({ name = "there", email = "example@gmail.com"
             <Tailwind>
                 <Head />
                 <Preview>Please verify your email address to complete your account setup</Preview>
-                <Body className="bg-gray-100 font-sans py-[40px]">
-                    <Container className="bg-white mx-auto px-[32px] py-[48px] max-w-[600px] rounded-[8px]">
+                <Body className="bg-gray-100 font-sans py-10">
+                    <Container className="bg-white mx-auto px-8 py-12 max-w-150 rounded-xl">
                         {/* Main content */}
                         <Section>
-                            <Heading className="text-[36px] font-bold text-gray-900 mb-[32px]">Hi, {name}</Heading>
+                            <Heading className="text-[36px] font-bold text-gray-900 mb-8">Hi, {name}</Heading>
 
-                            <Heading className="text-[28px] font-bold text-gray-900 mb-[24px]">Verify your email</Heading>
+                            <Heading className="text-[28px] font-bold text-gray-900 mb-6">Verify your email</Heading>
 
                             <Text className="text-[16px] text-gray-700 mb-[32px] leading-[24px]">
                                 We need to verify your email address to complete your account setup. Please click the button below to verify <strong>{email}</strong>.

@@ -22,7 +22,7 @@ const User = ({ _id, name, username, image, bio, followersCount, followingCount,
             <div className="flex gap-6 items-center">
                 <Avatar className="w-32 h-32">
                     <AvatarImage src={image} className="" />
-                    <AvatarFallback>{username.slice(0, 2)}</AvatarFallback>
+                    <AvatarFallback>{username?.slice(0, 2)}</AvatarFallback>
                 </Avatar>
                 <div>
                     <h1 className="text-3xl font-semibold tracking-tight first:mt-0">{name}</h1>

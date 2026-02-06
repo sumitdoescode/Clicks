@@ -2,7 +2,7 @@
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { PostSchema, type Post } from "@/schemas/post.schema";
 import Image from "next/image";
 import axios from "axios";
@@ -14,6 +14,7 @@ import { BookmarkIcon, Heart } from "lucide-react";
 import Link from "next/link";
 import { Send, Copy } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger, AlertDialogMedia } from "@/components/ui/alert-dialog";
+import { usePathname } from "next/navigation";
 
 interface IPost {
     _id: string;
@@ -149,17 +150,27 @@ const Post = ({ _id, image, caption, likesCount, commentsCount, isLiked, isBookm
                         <p className="text-md text-muted-foreground">
                             {likesCountState} {likesCountState > 1 ? "likes" : "like"}
                         </p>
-                        <ItemTitle className="mt-1">{caption!?.length > 100 ? `${caption?.slice(0, 100)}...` : caption}</ItemTitle>
+                        <PostCaption caption={caption} />
                     </div>
                     {commentsCount && (
                         <div>
-                            <ItemDescription>{commentsCount} sdfasdf comments</ItemDescription>
+                            <ItemDescription>{commentsCount} comments</ItemDescription>
                         </div>
                     )}
                 </div>
             </ItemFooter>
         </Item>
     );
+};
+
+const PostCaption = ({ caption }: { caption: string | undefined }) => {
+    const pathname = usePathname();
+    const isPostPage = pathname.includes("/post");
+
+    if (isPostPage) {
+        return <ItemTitle className="mt-1">{caption}</ItemTitle>;
+    }
+    return <ItemTitle className="mt-1">{caption!?.length > 100 ? `${caption?.slice(0, 100)}...` : caption}</ItemTitle>;
 };
 
 export default Post;

@@ -9,7 +9,7 @@ import { PostSchema, type Post } from "@/schemas/post.schema";
 import { Upload } from "lucide-react";
 import Image from "next/image";
 import { flattenError } from "zod";
-import { Spinner } from "./ui/spinner";
+import { Spinner } from "../ui/spinner";
 import axios from "axios";
 import { toast } from "sonner";
 
@@ -17,7 +17,6 @@ type PostForm = {
     caption: string;
     image: File | null;
 };
-
 
 type ErrorType = {
     caption?: string[];
@@ -69,8 +68,6 @@ const CreatePost = () => {
             setFormData({ ...formData, image: file });
             setErrors({ ...errors, image: undefined });
         }
-
-
     };
 
     const createPost = async () => {

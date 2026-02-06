@@ -4,7 +4,6 @@ import { mongodbAdapter } from "better-auth/adapters/mongodb";
 import { username } from "better-auth/plugins";
 import { Resend } from "resend";
 import User from "@/models/User.model";
-import { createAuthMiddleware } from "better-auth/api";
 import { connectDB } from "./db";
 import EmailVerificationTemplate from "@/components/emails/email-verify-template";
 import ResetPasswordTemplate from "@/components/emails/reset-password-template";
@@ -15,6 +14,9 @@ const db = client.db();
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 export const auth = betterAuth({
+    database: mongodbAdapter(db, {
+        client,
+    }),
     emailAndPassword: {
         enabled: true,
         requireEmailVerification: true,
@@ -28,25 +30,13 @@ export const auth = betterAuth({
             });
         },
     },
-    hooks: {
-        after: createAuthMiddleware(async (ctx) => {
-            if (ctx.path === "/sign-up/email") {
-                // User data is available even without a session
-                const user = ctx.context.returned.user;
-
-                if (user) {
-                    await connectDB();
-                    const newUser = await User.create({
-                        name: user.name,
-                        email: user.email,
-                        username: user.username,
-                        image: user.image,
-                        bio: "",
-                    });
-                }
-            }
+    plugins: [
+        username({
+            minUsernameLength: 3,
+            maxUsernameLength: 20,
         }),
-    },
+    ],
+
     emailVerification: {
         sendOnSignUp: true,
         sendOnSignIn: true,
@@ -62,17 +52,37 @@ export const auth = betterAuth({
             console.log({ data, error });
         },
     },
-
-    database: mongodbAdapter(db, {
-        client,
-    }),
-
-    plugins: [
-        username({
-            minUsernameLength: 3,
-            maxUsernameLength: 20,
-        }),
-    ],
+    databaseHooks: {
+        user: {
+            create: {
+                after: async (user) => {
+                    await connectDB();
+                    const newUser = await User.create({
+                        name: user.name,
+                        email: user.email,
+                        username: user.username,
+                        image: user.image,
+                        bio: "",
+                    });
+                },
+            },
+            delete: {
+                after: async (user) => {
+                    try {
+                        await connectDB();
+                        const dbUser = await User.findOne({ email: user.email });
+                        if (!dbUser) {
+                            return;
+                        }
+                        await dbUser.deleteOne();
+                        console.log(`Successfully cleaned up Mongoose data for user: ${user.id}`);
+                    } catch (error) {
+                        console.error("Failed to delete Mongoose user during cleanup:", error);
+                    }
+                },
+            },
+        },
+    },
 
     session: {
         freshAge: 0, // Disable freshness check

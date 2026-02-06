@@ -159,7 +159,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
         const result = UpdatePostSchema.safeParse({ caption });
         if (!result.success) {
-            return NextResponse.json({ success: false, error: flattenError(result.error).fieldErrors }, { status: 400 });
+            return NextResponse.json({ success: false, error: flattenError(result.error).fieldErrors, errorType: "VALIDATION_ERROR" }, { status: 400 });
         }
 
         await post.updateOne({

@@ -1,5 +1,5 @@
-import { ResetPasswordEmail } from "@/components/reset-password-email";
-import { ResetPassword } from "@/components/reset-password";
+import { ResetPasswordEmail } from "@/components/reset-password/reset-password-email";
+import { ResetPassword } from "@/components/reset-password/reset-password";
 // import { redirect } from "next/navigation";
 
 export default async function page({ params, searchParams }: { params: {}; searchParams: { token?: string } }) {

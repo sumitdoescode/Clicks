@@ -11,7 +11,7 @@ const likeSchema = new Schema(
             type: Schema.Types.ObjectId,
             ref: "Post",
             required: true,
-        }, // who is being liked
+        }, // which post is being liked
     },
     { timestamps: true },
 );

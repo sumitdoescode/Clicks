@@ -6,12 +6,12 @@ import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/c
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import React, { useState, useEffect } from "react";
-import { authClient } from "@/lib/auth-client"; //import the auth client
+import { authClient } from "@/lib/auth-client";
 import { SignUpSchema } from "@/schemas/auth.schema";
 import type { SignUpType } from "@/schemas/auth.schema";
 import { flattenError } from "zod";
 import { redirect } from "next/navigation";
-import { Spinner } from "./ui/spinner";
+import { Spinner } from "../ui/spinner";
 import { toast } from "sonner";
 
 type ErrorType = {
@@ -50,7 +50,6 @@ export function SignupForm({ className, ...props }: React.ComponentProps<"div">)
                 email: result.data.email,
                 password: result.data.password,
                 username: result.data.username,
-                // callbackURL : "/dashboard"
             },
             {
                 onSuccess: (ctx) => {
@@ -62,11 +61,12 @@ export function SignupForm({ className, ...props }: React.ComponentProps<"div">)
         setLoading(false);
 
         if (error) {
+            console.log(error);
             setErrors({ ...errors, backendError: error.message });
             return;
         }
 
-        // there are no errors
+        // // there are no errors
         setErrors({});
         toast.success("Please verify your email before logging in.");
     };
