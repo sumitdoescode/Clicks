@@ -32,7 +32,7 @@ const page = async ({ params }: { params: Promise<{ id: string }> }) => {
         <section className="pt-10 pb-20">
             <Container>
                 <Post {...data.post} />
-                <Comments />
+                <Comments postId={id} />
             </Container>
         </section>
     );

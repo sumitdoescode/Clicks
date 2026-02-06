@@ -7,6 +7,7 @@ const page = () => {
         <section className="py-20">
             <Container>
                 <CreatePost />
+
             </Container>
         </section>
     );

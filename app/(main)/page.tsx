@@ -7,7 +7,7 @@ export default async function page() {
     const headersList = await headers();
     let data;
     try {
-        // this is a server to server call, tha's why we need to pass the cookie
+        // this is a server to server call, that's why we need to pass the cookie
         const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/post`, {
             headers: {
                 cookie: headersList.get("cookie") || "",

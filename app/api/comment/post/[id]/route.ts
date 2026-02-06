@@ -72,6 +72,9 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
                     isPostOwner: {
                         $eq: ["$user._id", new mongoose.Types.ObjectId(post.user)],
                     },
+                    isCommentOwner: {
+                        $eq: ["$user._id", new mongoose.Types.ObjectId(me._id)],
+                    },
                 },
             },
             {
@@ -88,6 +91,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
                         username: 1,
                         image: 1,
                     },
+                    isCommentOwner: 1,
                     createdAt: 1,
                 },
             },
@@ -101,7 +105,6 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
 // Create a comment on a post
 // POST => api/comment/post/[id]
-
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         await connectDB();
