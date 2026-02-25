@@ -135,7 +135,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
         const result = CommentSchema.safeParse(data);
         if (!result.success) {
-            return NextResponse.json({ success: false, error: flattenError(result.error).fieldErrors || "Invalid Data" }, { status: 400 });
+            return NextResponse.json({ success: false, error: flattenError(result.error).fieldErrors || "Invalid Data", errorType: "VALIDATION_ERROR" }, { status: 400 });
         }
 
         // create the comment

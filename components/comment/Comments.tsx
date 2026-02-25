@@ -8,6 +8,9 @@ import { Item, ItemHeader, ItemFooter, ItemContent, ItemMedia, ItemTitle, ItemDe
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
+import dayjs from "dayjs";
+import relativetime from "dayjs/plugin/relativeTime";
+dayjs.extend(relativetime);
 
 interface IComment {
     _id: string;
@@ -39,7 +42,7 @@ const Comments = ({ postId }: { postId: string }) => {
 
     if (!comments.length) {
         return (
-            <div className="text-center">
+            <div className="mt-6">
                 <p className="text-lg text-neutral-200 font-semibold">No comments yet</p>
             </div>
         );
@@ -57,7 +60,7 @@ const Comments = ({ postId }: { postId: string }) => {
             {/* actual comments */}
             <div className="flex flex-col gap-2 mt-4">
                 {comments.map((comment) => (
-                    <Comment {...comment} key={comment._id} />
+                    <Comment key={comment._id} {...comment} getComments={getComments} />
                 ))}
             </div>
         </div>
@@ -65,12 +68,12 @@ const Comments = ({ postId }: { postId: string }) => {
 };
 export default Comments;
 
-const Comment = ({ _id, text, isCommentOwner, createdAt, user: { name, username, image } }: IComment) => {
-    const deleteComment = async (commentId: string) => {
+const Comment = ({ _id, text, isCommentOwner, createdAt, user: { name, username, image }, getComments }: IComment & { getComments: () => void }) => {
+    const deleteComment = async () => {
         try {
-            await axios.delete(`/api/comment/${commentId}`);
+            await axios.delete(`/api/comment/${_id}`);
             toast.success("Comment deleted successfully");
-            // getComments();
+            getComments();
         } catch (error) {
             toast.error("Error deleting comment");
             console.log(error);
@@ -93,7 +96,7 @@ const Comment = ({ _id, text, isCommentOwner, createdAt, user: { name, username,
 
                     {/* delete button */}
                     {isCommentOwner && (
-                        <Button variant="destructive" size="lg" className="cursor-pointer" onClick={() => deleteComment(_id)}>
+                        <Button variant="destructive" size="lg" className="cursor-pointer" onClick={deleteComment}>
                             <Trash2 className="w-5 h-5" />
                         </Button>
                     )}
@@ -104,7 +107,7 @@ const Comment = ({ _id, text, isCommentOwner, createdAt, user: { name, username,
             </ItemContent>
             <ItemFooter>
                 <div className="flex items-center gap-2">
-                    <p className="text-muted-foreground text-xs">{new Date(createdAt).toLocaleString()}</p>
+                    <p className="text-muted-foreground text-xs">{dayjs(createdAt).fromNow()}</p>
                 </div>
             </ItemFooter>
         </Item>
